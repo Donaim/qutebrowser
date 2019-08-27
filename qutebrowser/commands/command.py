@@ -573,11 +573,14 @@ class Command:
         return any(info.value in self.COUNT_COMMAND_VALUES
                    for info in self._qute_args.values())
 
-    def register(self):
+    def register(self, overwrite = False):
         """Register this command in objects.commands."""
         log.commands.vdebug(  # type: ignore
             "Registering command {} (from {}:{})".format(
                 self.name, self.handler.__module__, self.handler.__qualname__))
         if self.name in objects.commands:
-            raise ValueError("{} is already registered!".format(self.name))
+            if overwrite:
+                log.commands.debug("Key {} was overridden".format(self.name))
+            else:
+                raise ValueError("{} is already registered!".format(self.name))
         objects.commands[self.name] = self
