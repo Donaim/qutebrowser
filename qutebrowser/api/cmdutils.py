@@ -113,6 +113,7 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
     def __init__(self, *,
                  instance: str = None,
                  name: str = None,
+                 overwrite: bool = False,
                  **kwargs: typing.Any) -> None:
         """Save decorator arguments.
 
@@ -127,6 +128,8 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
         self._name = name
         # The arguments to pass to Command.
         self._kwargs = kwargs
+        # Overwrite existing command if exists.
+        self._overwrite = overwrite
 
     def __call__(self, func: typing.Callable) -> typing.Callable:
         """Register the command before running the function.
@@ -150,7 +153,7 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
 
         cmd = command.Command(name=name, instance=self._instance,
                               handler=func, **self._kwargs)
-        cmd.register()
+        cmd.register(overwrite=self._overwrite)
         return func
 
 
