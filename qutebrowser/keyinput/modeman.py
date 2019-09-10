@@ -172,13 +172,48 @@ class ModeManager(QObject):
             log.modes.debug("got keypress in mode {} - delegating to "
                             "{}".format(curmode, utils.qualname(parser)))
 
-        russian_dict = {
-            1040: (70, 'F'),
-            1060: (65, 'A'),
-            }
-        if event.key() in russian_dict:
-            (newcode, text) = russian_dict[event.key()]
-            print(f'replacing {event.text()} by {text}')
+        # print(f'text: {event.text()}, scancode: {event.nativeScanCode()}')
+        # print(f'{event.nativeScanCode()}: ({event.key()}, {event.text()}),')
+
+        native_codes = {
+            24: (81, 'Q'),
+            25: (87, 'W'),
+            26: (69, 'E'),
+            27: (82, 'R'),
+            28: (84, 'T'),
+            29: (89, 'Y'),
+            30: (85, 'U'),
+            31: (73, 'I'),
+            32: (79, 'O'),
+            33: (80, 'P'),
+            34: (91, '['),
+            35: (93, ']'),
+            38: (65, 'A'),
+            39: (83, 'S'),
+            40: (68, 'D'),
+            41: (70, 'F'),
+            42: (71, 'G'),
+            43: (72, 'H'),
+            44: (74, 'J'),
+            45: (75, 'K'),
+            46: (76, 'L'),
+            47: (59, ';'),
+            48: (39, '\''),
+            52: (90, 'Z'),
+            53: (88, 'X'),
+            54: (67, 'C'),
+            55: (86, 'V'),
+            56: (66, 'B'),
+            57: (78, 'N'),
+            58: (77, 'M'),
+            59: (44, ','),
+            60: (46, '.'),
+            61: (47, '/'),
+        }
+
+        if event.nativeScanCode() in native_codes:
+            (newcode, text) = native_codes[event.nativeScanCode()]
+            log.modes.debug("key {} replaced by {}".format(event.text(), text))
             event = QKeyEvent(event.type(), newcode, event.modifiers(), text)
 
         match = parser.handle(event, dry_run=dry_run)
