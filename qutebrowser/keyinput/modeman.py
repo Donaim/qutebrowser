@@ -174,9 +174,7 @@ class ModeManager(QObject):
 
         isShifted = bool(event.modifiers() & Qt.ShiftModifier)
 
-        if event.type() == 51 and event.text():
-            print(f'{(event.nativeScanCode(), isShifted)}: ({event.key()}, "{event.text()}"),')
-
+        # TODO: make a script for generating this
         native_codes = {
             (24, False): (81, "q"),
             (25, False): (87, "w"),
@@ -250,8 +248,9 @@ class ModeManager(QObject):
         dkey = (event.nativeScanCode(), isShifted)
         if dkey in native_codes:
             (newcode, text) = native_codes[dkey]
-            log.modes.debug("key {} replaced by {}".format(event.text(), text))
-            event = QKeyEvent(event.type(), newcode, event.modifiers(), text)
+            if newcode != event.key():
+                log.modes.debug("key {} replaced by {}".format(event.text(), text))
+                event = QKeyEvent(event.type(), newcode, event.modifiers(), text)
 
         match = parser.handle(event, dry_run=dry_run)
 
