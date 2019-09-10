@@ -36,7 +36,7 @@ from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.browser import hints
 
 INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
-PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
+PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno, usertypes.KeyMode.command]
 
 ParserDictType = typing.MutableMapping[
     usertypes.KeyMode, basekeyparser.BaseKeyParser]
@@ -395,16 +395,13 @@ class ModeManager(QObject):
         if mode == usertypes.KeyMode.normal:
             self.leave(self.mode, reason='enter normal: {}'.format(reason))
             return
+        if not isinstance(mode, usertypes.KeyMode):
+            raise TypeError("Mode {} is no KeyMode member!".format(mode))
 
         log.modes.debug("Entering mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self.parsers:
             raise ValueError("No keyparser for mode {}".format(mode))
-        if self.mode == mode or (self.mode in PROMPT_MODES and
-                                 mode in PROMPT_MODES):
-            log.modes.debug("Ignoring request as we're in mode {} "
-                            "already.".format(self.mode))
-            return
         if self.mode != usertypes.KeyMode.normal:
             if only_if_normal:
                 log.modes.debug("Ignoring request as we're in mode {} "
@@ -414,10 +411,8 @@ class ModeManager(QObject):
             log.modes.debug("Overriding mode {}.".format(self.mode))
             self.left.emit(self.mode, mode, self._win_id)
 
-        if mode in PROMPT_MODES and self.mode in INPUT_MODES:
+        if not self.mode in PROMPT_MODES:
             self._prev_mode = self.mode
-        else:
-            self._prev_mode = usertypes.KeyMode.normal
 
         self.mode = mode
         self.entered.emit(mode, self._win_id)
@@ -470,9 +465,8 @@ class ModeManager(QObject):
         self.clear_keychain()
         self.mode = usertypes.KeyMode.normal
         self.left.emit(mode, self.mode, self._win_id)
-        if mode in PROMPT_MODES:
-            self.enter(self._prev_mode,
-                       reason='restore mode before {}'.format(mode.name))
+        self.enter(self._prev_mode,
+                   reason='restore mode before {}'.format(mode.name))
 
     @cmdutils.register(instance='mode-manager', name='leave-mode',
                        not_modes=[usertypes.KeyMode.normal], scope='window')
