@@ -90,6 +90,12 @@ class NormalKeyParser(CommandKeyParser):
         Return:
             A self.Match member.
         """
+
+        print(f'keycode: {e.key()}')
+
+        try: print(f'seqenced: {QKeySequence(e.key()).toString()}')
+        except Exception as ex: print(f'failed to seqence key {e.text().strip()}, err = {ex}')
+
         txt = e.text().strip()
         if self._inhibited:
             self._debug_log("Ignoring key '{}', because the normal mode is "

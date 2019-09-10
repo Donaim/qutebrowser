@@ -24,6 +24,7 @@ import functools
 import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QKeyEvent
 
 from qutebrowser.keyinput import modeparsers
 from qutebrowser.config import config
@@ -170,6 +171,16 @@ class ModeManager(QObject):
         if curmode != usertypes.KeyMode.insert:
             log.modes.debug("got keypress in mode {} - delegating to "
                             "{}".format(curmode, utils.qualname(parser)))
+
+        russian_dict = {
+            1040: (70, 'F'),
+            1060: (65, 'A'),
+            }
+        if event.key() in russian_dict:
+            (newcode, text) = russian_dict[event.key()]
+            print(f'replacing {event.text()} by {text}')
+            event = QKeyEvent(event.type(), newcode, event.modifiers(), text)
+
         match = parser.handle(event, dry_run=dry_run)
 
         is_non_alnum = (
