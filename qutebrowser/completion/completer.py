@@ -28,6 +28,9 @@ from qutebrowser.misc import objects
 from qutebrowser.utils import log, utils, debug
 from qutebrowser.completion.models import miscmodels
 
+import threading
+from threading import Thread
+import time
 
 @attr.s
 class CompletionInfo:
@@ -57,14 +60,14 @@ class Completer(QObject):
         super().__init__(parent)
         self._cmd = cmd
         self._win_id = win_id
-        self._timer = QTimer()
-        self._timer.setSingleShot(True)
-        self._timer.setInterval(0)
-        self._timer.timeout.connect(self._update_completion)
         self._last_cursor_pos = -1
         self._last_text = None
         self._last_before_cursor = None
         self._cmd.update_completion.connect(self.schedule_completion_update)
+
+        self.go = False
+        th = Thread(target=self.goloop, args=())
+        th.start()
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -213,10 +216,16 @@ class Completer(QObject):
                                  "changes.")
         else:
             log.completion.debug("Scheduling completion update.")
-            start_delay = config.val.completion.delay if self._last_text else 0
-            self._timer.start(start_delay)
+            self.go = True
         self._last_cursor_pos = self._cmd.cursorPosition()
         self._last_text = self._cmd.text()
+
+    def goloop(self):
+        while True:
+            time.sleep(0.1)
+            if self.go:
+                self.go = False
+                self._update_completion()
 
     @pyqtSlot()
     def _update_completion(self):
