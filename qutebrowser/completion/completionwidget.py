@@ -31,6 +31,9 @@ from qutebrowser.completion import completiondelegate
 from qutebrowser.utils import utils, usertypes, debug, log, objreg
 from qutebrowser.api import cmdutils
 
+import threading
+from threading import Thread
+import time
 
 class CompletionView(QTreeView):
 
@@ -112,6 +115,10 @@ class CompletionView(QTreeView):
         config.instance.changed.connect(self._on_config_changed)
 
         self._active = False
+        self.pending = None
+
+        th = Thread(target=self._set_loop, args=())
+        th.start()
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
@@ -285,6 +292,16 @@ class CompletionView(QTreeView):
             self.show()
 
     def set_model(self, model):
+        self.pending = model
+
+    def _set_loop(self):
+        while True:
+            time.sleep(0.1)
+            if self.pending:
+                self._really_set_model(self.pending)
+                self.pending = None
+
+    def _really_set_model(self, model):
         """Switch completion to a new model.
 
         Called from on_update_completion().
@@ -302,6 +319,8 @@ class CompletionView(QTreeView):
             self._active = False
             self.hide()
             return
+
+        print(f'setting model with cound = {model.count()}')
 
         model.setParent(self)
         self._active = True

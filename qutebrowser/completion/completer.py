@@ -223,6 +223,8 @@ class Completer(QObject):
         """Check if completions are available and activate them."""
         completion = self.parent()
 
+        print(f'completion: {completion}')
+
         if self._cmd.prefix() != ':':
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
