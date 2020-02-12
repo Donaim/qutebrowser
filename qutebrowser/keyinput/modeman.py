@@ -83,8 +83,9 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
 
     keyparsers = {
         usertypes.KeyMode.normal:
-            modeparsers.NormalKeyParser(
+            modeparsers.PassthroughKeyParser(
                 win_id=win_id,
+                mode=usertypes.KeyMode.normal,
                 commandrunner=commandrunner,
                 parent=modeman),
 
