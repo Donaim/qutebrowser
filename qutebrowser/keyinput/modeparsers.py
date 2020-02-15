@@ -74,9 +74,10 @@ class NormalKeyParser(CommandKeyParser):
 
     def __init__(self, win_id: int,
                  commandrunner: 'runners.CommandRunner',
-                 parent: QObject = None) -> None:
+                 parent: QObject = None,
+                 readConfig = (lambda self: self._read_config('normal'))) -> None:
         super().__init__(win_id, commandrunner, parent)
-        self._read_config('normal')
+        readConfig(self)
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
         self._partial_timer.timeout.connect(self._clear_partial_match)
@@ -130,7 +131,7 @@ class NormalKeyParser(CommandKeyParser):
         self._inhibited = False
 
 
-class PassthroughKeyParser(CommandKeyParser):
+class PassthroughKeyParser(NormalKeyParser):
 
     """KeyChainParser which passes through normal keys.
 
@@ -155,8 +156,7 @@ class PassthroughKeyParser(CommandKeyParser):
             parent: Qt parent.
             warn: Whether to warn if an ignored key was bound.
         """
-        super().__init__(win_id, commandrunner, parent)
-        self._read_config(mode.name)
+        super().__init__(win_id, commandrunner, parent, readConfig=(lambda self: self._read_config(mode.name)))
         self._mode = mode
 
     def __repr__(self) -> str:
